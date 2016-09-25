@@ -73,9 +73,4 @@ class SimpleTableViewExampleSectionedViewController
         label.text = dataSource.sectionAtIndex(section).model
         return label
     }
-
-    // to prevent swipe to delete behavior
-    func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCellEditingStyle {
-        return .none
-    }
 }
