@@ -44,6 +44,16 @@ public class RxTableViewDataSourceProxy
     
     fileprivate weak var _requiredMethodsDataSource: UITableViewDataSource? = tableViewDataSourceNotSet
 
+    internal var editObserversCount = 0
+    
+    public override func responds(to selector: Selector!) -> Bool {
+        if selector == #selector(UITableViewDataSource.tableView(_:commit:forRowAt:)) && editObserversCount <= 0 {
+            return false
+        } else {
+            return super.responds(to: selector)
+        }
+    }
+
     /**
      Initializes `RxTableViewDataSourceProxy`
 

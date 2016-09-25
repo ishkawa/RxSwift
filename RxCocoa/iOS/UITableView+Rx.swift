@@ -194,7 +194,7 @@ extension Reactive where Base: UITableView {
     
     For more information take a look at `DelegateProxyType` protocol documentation.
     */
-    public var dataSource: DelegateProxy {
+    public var dataSource: RxTableViewDataSourceProxy {
         return RxTableViewDataSourceProxy.proxyForObject(base)
     }
    
@@ -254,14 +254,18 @@ extension Reactive where Base: UITableView {
     Reactive wrapper for `delegate` message `tableView:commitEditingStyle:forRowAtIndexPath:`.
     */
     public var itemInserted: ControlEvent<IndexPath> {
+        let dataSource = self.dataSource
+        dataSource.editObserversCount += 1
+
         let source = self.dataSource.observe(#selector(UITableViewDataSource.tableView(_:commit:forRowAt:)))
             .filter { a in
                 return UITableViewCellEditingStyle(rawValue: (try castOrThrow(NSNumber.self, a[1])).intValue) == .insert
             }
             .map { a in
                 return (try castOrThrow(IndexPath.self, a[2]))
-        }
-        
+            }
+            .do(onDispose: { [weak dataSource] in dataSource?.editObserversCount -= 1 })
+
         return ControlEvent(events: source)
     }
     
@@ -269,6 +273,9 @@ extension Reactive where Base: UITableView {
     Reactive wrapper for `delegate` message `tableView:commitEditingStyle:forRowAtIndexPath:`.
     */
     public var itemDeleted: ControlEvent<IndexPath> {
+        let dataSource = self.dataSource
+        dataSource.editObserversCount += 1
+
         let source = self.dataSource.observe(#selector(UITableViewDataSource.tableView(_:commit:forRowAt:)))
             .filter { a in
                 return UITableViewCellEditingStyle(rawValue: (try castOrThrow(NSNumber.self, a[1])).intValue) == .delete
@@ -276,6 +283,7 @@ extension Reactive where Base: UITableView {
             .map { a in
                 return try castOrThrow(IndexPath.self, a[2])
             }
+            .do(onDispose: { [weak dataSource] in dataSource?.editObserversCount -= 1 })
         
         return ControlEvent(events: source)
     }
